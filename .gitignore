@@ -1,0 +1,22 @@
+# Environment variables
+.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Data files
+data/
+generated/
+
+# Virtual environment
+venv/
+
+# IDE-specific files
+.idea/
+.vscode/
+
+# Compiled Python files
+__pycache__/
+
+# macOS specific files
+.DS_Store
