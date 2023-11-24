@@ -1,0 +1,8 @@
+name: ???
+train_batch:
+val_batch:
+
+fast_weight: False
+
+start_epoch: 0
+eval_type: set

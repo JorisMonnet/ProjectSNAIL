@@ -1,0 +1,6 @@
+defaults:
+  - baseline
+
+name: baseline_pp
+cls:
+  loss: dist

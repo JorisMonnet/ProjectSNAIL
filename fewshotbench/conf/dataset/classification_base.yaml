@@ -1,0 +1,13 @@
+# @package _global_
+
+dataset:
+  type: classification
+  simple_cls:
+
+  set_cls:
+    n_way: ${n_way}
+    n_support: ${n_shot}
+    n_query: ${n_query}
+
+# What splits to run on evaluation
+eval_split: [ train, val, test ]

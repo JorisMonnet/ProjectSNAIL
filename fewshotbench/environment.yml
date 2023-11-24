@@ -1,0 +1,10 @@
+name: fewshotbench
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - pip=23.0.1
+  - python==3.10.11
+  - pip:
+      - -r requirements.txt

@@ -1,0 +1,9 @@
+defaults:
+  - method_base
+
+stop_epoch: 60
+type: meta
+
+cls:
+  n_way: ${n_way}
+  n_support: ${n_shot}

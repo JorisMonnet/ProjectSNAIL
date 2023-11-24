@@ -1,0 +1,23 @@
+# @package _global_
+
+defaults:
+  - classification_base
+
+dataset:
+  name: tabula_muris
+  simple_cls:
+    _target_: datasets.cell.tabula_muris.TMSimpleDataset
+
+  set_cls:
+    _target_: datasets.cell.tabula_muris.TMSetDataset
+
+backbone:
+  _target_: backbones.fcnet.FCNet
+  layer_dim: [ 64, 64 ]
+
+# For baseline, how many total classes
+train_classes: 59
+
+n_way: 5
+n_shot: 5
+n_query: 15

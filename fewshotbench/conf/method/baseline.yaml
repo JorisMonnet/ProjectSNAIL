@@ -1,0 +1,17 @@
+defaults:
+  - method_base
+
+name: baseline
+type: baseline
+
+cls:
+  _target_: methods.baseline.Baseline
+  type: ${dataset.type}
+  n_way: ${n_way}
+  n_support: ${n_shot}
+  n_classes: ${train_classes}
+  loss: softmax
+
+stop_epoch: 40
+train_batch: 16
+

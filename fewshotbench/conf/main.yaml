@@ -1,0 +1,35 @@
+defaults:
+  - dataset: tabula_muris
+  - method: maml
+
+model: FCNet
+n_way: ???
+n_shot: ???
+n_query: ???
+
+mode: train
+
+exp:
+  name: ???
+  save_freq: 10
+  resume: false
+  seed: 42
+  val_freq: 1
+
+optimizer: Adam
+lr: 0.001
+optimizer_cls:
+  _target_: torch.optim.${optimizer}
+  lr: ${lr}
+
+checkpoint:
+  dir: checkpoints/${exp.name}/${dataset.name}/${method.name}_${model}
+  test_iter: best_model
+  time: latest
+
+wandb:
+  project: ???
+  entity: ???
+  mode: "online" # Can set to offline, disabled
+
+iter_num: 600

@@ -1,0 +1,18 @@
+defaults:
+  - meta_base
+
+name: maml
+n_task: 4
+task_update_num: 1
+
+maml_inner_lr: 0.01
+
+# MAML reqires special gradient updates in backbone
+fast_weight: True
+
+# For instantiate API
+cls:
+  _target_: methods.maml.MAML
+  n_task: ${method.n_task}
+  task_update_num: ${method.task_update_num}
+  inner_lr: ${method.maml_inner_lr}

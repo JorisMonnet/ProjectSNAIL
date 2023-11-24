@@ -1,0 +1,7 @@
+defaults:
+  - meta_base
+
+cls:
+  _target_: methods.protonet.ProtoNet
+
+name: protonet
