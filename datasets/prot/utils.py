@@ -72,8 +72,10 @@ def get_term_frequency(root, reader):
 
 def select_annot_via_ic(annots, term_frequency, max_freq):
     # lower is more informative
-    annots.sort(key=lambda x: term_frequency.get(x, max_freq+1))
-    return annots[0]
+    annots_with_freq = [(term_frequency.get(a, max_freq+1), a) for a in annots]
+    # sort by frequency
+    annots_with_freq.sort()
+    return annots_with_freq[0][1]
 
 def get_samples_using_ic(root):
     samples = []
