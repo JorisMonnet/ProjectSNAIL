@@ -1,0 +1,9 @@
+defaults:
+  - meta_base
+
+num_channels: ???
+
+cls:
+  _target_: methods.snail.Snail
+
+name: snail
