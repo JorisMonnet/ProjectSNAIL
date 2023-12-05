@@ -89,6 +89,8 @@ class MetaTemplate(nn.Module):
                 if self.change_way:
                     self.n_way = x.size(0)
             optimizer.zero_grad()
+            
+            # TODO: check that the labels are correct
             loss = self.set_forward_loss(x)
             loss.backward()
             optimizer.step()
