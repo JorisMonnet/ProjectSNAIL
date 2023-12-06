@@ -9,12 +9,12 @@ from backbones import AttentionBlock, TCBlock
 from backbones.blocks import Linear_fw
 from methods.meta_template import MetaTemplate
 
-class Snail(nn.Module):
+class SnailModel(nn.Module):
 
-    def __init__(self, encoder, n_way, n_support, num_channels):
-        super(Snail, self).__init__(encoder, n_way, n_support, change_way=False)
+    def __init__(self, features, n_way, n_support, num_channels):
+        super(SnailModel, self).__init__(features, n_way, n_support, change_way=False)
 
-        self.encoder = encoder  # TODO  
+        self.features = features  # TODO  
         num_filters = int(math.ceil(math.log(n_way * n_support + 1, 2)))
 
         self.attention1 = AttentionBlock(num_channels,  64, 32)
@@ -33,7 +33,7 @@ class Snail(nn.Module):
 
     
     def forward(self, x, labels):
-        x = self.encoder(input)
+        x = self.features(x)
         batch_size = int(labels.size()[0] / (self.N * self.K + 1))
         last_idxs = [(i + 1) * (self.N * self.K + 1) - 1 for i in range(batch_size)]
 

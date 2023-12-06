@@ -8,6 +8,7 @@ from backbones import AttentionBlock, TCBlock
 
 from backbones.blocks import Linear_fw
 from methods.meta_template import MetaTemplate
+from snail_model import SnailModel
 
 
 class SnailMethod(MetaTemplate):
@@ -15,21 +16,23 @@ class SnailMethod(MetaTemplate):
     def __init__(self, backbone, n_way, n_support, num_channels):
         super(SnailMethod, self).__init__(backbone, n_way, n_support, change_way=False)
         
+        self.snail_model = SnailModel(backbone, n_way, n_support, num_channels)
         self.criterion = nn.CrossEntropyLoss()
 
-        # TODO
 
-
-    # def forward(self, x, labels):
-    # TODO check if we need to select only the last sequence
-
-
-    def set_forward(self, x):
+    def forward(self, x):
         y_query = torch.from_numpy(np.repeat(range(self.n_way), self.n_query))
         y_query = Variable(y_query.cuda())
 
-        x, y, last_targets = self.batch_for_few_shot(x, y_query)
-        model_output = self.backbone(x, y)
+        return self.snail_model(x, y_query)
+
+
+    def set_forward(self, x):
+        y = torch.from_numpy(np.repeat(range(self.n_way), self.n_support + self.n_query))
+        y = Variable(y.cuda())
+
+        x, y, last_targets = self.batch_for_few_shot(x, y)
+        model_output = self.snail_model(x, y)
 
         # TODO: why 3 dimensions and not 2?
         return model_output[:, -1, :], last_targets
