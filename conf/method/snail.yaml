@@ -4,6 +4,6 @@ defaults:
 num_channels: ???
 
 cls:
-  _target_: methods.snail.Snail
+  _target_: methods.snail.snail_method.SnailMethod
 
 name: snail
