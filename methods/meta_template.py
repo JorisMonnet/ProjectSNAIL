@@ -88,9 +88,7 @@ class MetaTemplate(nn.Module):
                 self.n_query = x.size(1) - self.n_support
                 if self.change_way:
                     self.n_way = x.size(0)
-            optimizer.zero_grad()
-            
-            # TODO: check that the labels are correct
+            optimizer.zero_grad()            
             loss = self.set_forward_loss(x)
             loss.backward()
             optimizer.step()
