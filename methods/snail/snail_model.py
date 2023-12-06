@@ -4,30 +4,31 @@ import torch.nn as nn
 import wandb
 from torch.autograd import Variable
 import math
-from backbones import AttentionBlock, TCBlock
+from methods.snail.snail_blocks import AttentionBlock, TCBlock
 
-from backbones.blocks import Linear_fw
-from methods.meta_template import MetaTemplate
 
 class SnailModel(nn.Module):
 
-    def __init__(self, features, n_way, n_support, num_channels):
-        super(SnailModel, self).__init__(features, n_way, n_support, change_way=False)
+    def __init__(self, features, n_way, n_support):
+        super(SnailModel, self).__init__()
 
-        self.features = features  # TODO  
+        # TODO how to define num_channels ? output of FCNET
+        n_channels = features.final_feat_dim
+
+        self.features = features  
         num_filters = int(math.ceil(math.log(n_way * n_support + 1, 2)))
 
-        self.attention1 = AttentionBlock(num_channels,  64, 32)
-        num_channels += 32
-        self.tc1 = TCBlock(num_channels, n_way * n_support + 1, 128)
-        num_channels += num_filters * 128
-        self.attention2 = AttentionBlock(num_channels, 256, 128)
-        num_channels += 128
-        self.tc2 = TCBlock(num_channels, n_way * n_support + 1, 128)
-        num_channels += num_filters * 128
-        self.attention3 = AttentionBlock(num_channels, 512, 256)
-        num_channels += 256
-        self.fc = nn.Linear(num_channels, n_way)
+        self.attention1 = AttentionBlock(n_channels,  64, 32)
+        n_channels += 32
+        self.tc1 = TCBlock(n_channels, n_way * n_support + 1, 128)
+        n_channels += num_filters * 128
+        self.attention2 = AttentionBlock(n_channels, 256, 128)
+        n_channels += 128
+        self.tc2 = TCBlock(n_channels, n_way * n_support + 1, 128)
+        n_channels += num_filters * 128
+        self.attention3 = AttentionBlock(n_channels, 512, 256)
+        n_channels += 256
+        self.fc = nn.Linear(n_channels, n_way)
         self.N = n_way
         self.K = n_support
 

@@ -1,22 +1,18 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import wandb
 from torch.autograd import Variable
-import math
-from backbones import AttentionBlock, TCBlock
 
 from backbones.blocks import Linear_fw
 from methods.meta_template import MetaTemplate
-from snail_model import SnailModel
+from methods.snail.snail_model import SnailModel
 
 
 class SnailMethod(MetaTemplate):
 
-    def __init__(self, backbone, n_way, n_support, num_channels):
+    def __init__(self, backbone, n_way, n_support):
         super(SnailMethod, self).__init__(backbone, n_way, n_support, change_way=False)
-        
-        self.snail_model = SnailModel(backbone, n_way, n_support, num_channels)
+        self.snail_model = SnailModel(backbone, n_way, n_support)
         self.criterion = nn.CrossEntropyLoss()
 
 
