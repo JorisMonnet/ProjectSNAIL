@@ -6,4 +6,7 @@ num_channels: ???
 cls:
   _target_: methods.snail.snail_method.SnailMethod
 
+set_cls:
+  n_query: 1 
+
 name: snail

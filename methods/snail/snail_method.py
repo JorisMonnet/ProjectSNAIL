@@ -14,6 +14,7 @@ class SnailMethod(MetaTemplate):
         super(SnailMethod, self).__init__(backbone, n_way, n_support, change_way=False)
         self.snail_model = SnailModel(backbone, n_way, n_support)
         self.criterion = nn.CrossEntropyLoss()
+        self.n_query_snail = 1
 
 
     def forward(self, x):
@@ -28,7 +29,23 @@ class SnailMethod(MetaTemplate):
         y = torch.from_numpy(np.repeat(range(self.n_way), self.n_support + self.n_query))
         y = Variable(y.cuda())
 
+        # change x dimensions to be of shape (N*(K+Q), ...))
+        x = x.reshape(-1, *x.size()[2:]) # TODO reshape vs view?
+
+        print("====================")
+        print("set_forward")
+        print("x.size():", x.size())
+        print("y.size():", y.size())
+        print("====================")
+
         x, y, last_targets = self.batch_for_few_shot(x, y)
+
+        print("====================")
+        print("set_forward after batch_for_few_shot")
+        print("x.size():", x.size())
+        print("y.size():", y.size())
+        print("last_targets.size():", last_targets.size())
+        print("====================")
         model_output = self.snail_model(x, y)
 
         # TODO: why 3 dimensions and not 2?
@@ -83,12 +100,12 @@ class SnailMethod(MetaTemplate):
         y_support, y_query = self.split_support_query_labels(y_fsb)
 
         # sample n_query randomly from the query set and concatenate them to the support set
-        assert y_query.size == self.n_way * self.n_query
-        last_targets_labels = y_query[torch.randperm(y_query.size()[0])[:self.n_query]]
+        assert y_query.size()[0] == self.n_way * self.n_query
+        last_targets_labels = y_query[torch.randperm(y_query.size()[0])[:self.n_query_snail]]
 
         # put the labels and the last targets together
         y_support = torch.cat((y_support, last_targets_labels), dim=0)
-        assert y_support.size()[0] == self.n_way * self.n_support + self.n_query
+        assert y_support.size()[0] == self.n_way * self.n_support + self.n_query_snail
 
         return y_support
     
@@ -119,12 +136,12 @@ class SnailMethod(MetaTemplate):
         x_support, x_query = self.split_support_query_data(x_fsb)
 
         # sample n_query randomly from the query set and concatenate them to the support set
-        assert x_query.size[0] == self.n_way * self.n_query
-        last_targets_data = x_query[torch.randperm(x_query.size()[0])[:self.n_query]]
+        assert x_query.size()[0] == self.n_way * self.n_query
+        last_targets_data = x_query[torch.randperm(x_query.size()[0])[:self.n_query_snail]]
 
         # put the labels and the last targets together
         x_support = torch.cat((x_support, last_targets_data), dim=0)
-        assert x_support.size()[0] == self.n_way * self.n_support + self.n_query
+        assert x_support.size()[0] == self.n_way * self.n_support + self.n_query_snail
 
         return x_support
 
@@ -137,28 +154,48 @@ class SnailMethod(MetaTemplate):
                     y: (batch_size * seq_size, num_cls)
                     last_targets: (batch_size), the index of the label that we want to predict
         """
-        snail_seq_size = self.n_way * self.n_support + self.n_query
+        snail_seq_size = self.n_way * self.n_support + self.n_query_snail
         fsb_seq_size = self.n_way * (self.n_support + self.n_query)
 
         one_hots = []
         last_targets = []
 
-        assert y.size()[0] == fsb_seq_size * 4 # TODO use batch_size
+        print("====================")
+        print("x.size():", x.size())
+        print("y.size():", y.size())
+        print(f"snail_seq_size: {snail_seq_size}")
+        print(f"fsb_seq_size: {fsb_seq_size}")
+        print(f"n_way: {self.n_way}")
+        print(f"n_support: {self.n_support}")
+        print(f"n_query: {self.n_query}")
+        print(f"n_query_snail: {self.n_query_snail}")
+        print("====================")
+
+         # TODO use batch_size
 
         # initialize the new x, which will have the snail_seq_size as first dimension
-        x_snail = torch.zeros((snail_seq_size * 4, *x.size()[1:])).cuda()
+        # x_snail = torch.zeros((snail_seq_size, *x.size()[1:])).cuda()
         
-        for i in range(4): # TODO use batch_size
-            # convert the sequence from fewshotbench format to snail format
-            x_fsb = x[i * fsb_seq_size : (i + 1) * fsb_seq_size]
-            x_snail[i * snail_seq_size : (i + 1) * snail_seq_size] = self.fsb_to_snail_seq_data(x_fsb)
+        # for i in range(4): # TODO use batch_size. Seemds like we have
+        #     print("Done iter 1!")
+        #     # convert the sequence from fewshotbench format to snail format
+        #     x_fsb = x[i * fsb_seq_size : (i + 1) * fsb_seq_size]
+        #     x_snail[i * snail_seq_size : (i + 1) * snail_seq_size] = self.fsb_to_snail_seq_data(x_fsb)
 
-            y_fsb = y[i * fsb_seq_size : (i + 1) * fsb_seq_size]
-            y_snail = self.fsb_to_snail_seq_label(y_fsb)
+        #     y_fsb = y[i * fsb_seq_size : (i + 1) * fsb_seq_size]
+        #     y_snail = self.fsb_to_snail_seq_label(y_fsb)
 
-            one_hot, idxs = self.labels_to_one_hot(y_snail)
-            one_hots.append(one_hot)
-            last_targets.append(idxs[-self.n_query:])
+        #     one_hot, idxs = self.labels_to_one_hot(y_snail)
+        #     one_hots.append(one_hot)
+        #     last_targets.append(idxs[-self.n_query:])
+
+        # TODO it seems like in our case, we only have one sequence per batch
+        x_snail = self.fsb_to_snail_seq_data(x)
+        y_snail = self.fsb_to_snail_seq_label(y)
+
+        one_hot, idxs = self.labels_to_one_hot(y_snail)
+        one_hots.append(one_hot)
+        last_targets.append(idxs[-self.n_query_snail:])
 
         # last_targets: the index of the label that we want to predict.
         # we only take the last one of each iter as we provide all the
@@ -169,5 +206,11 @@ class SnailMethod(MetaTemplate):
         one_hots = [torch.Tensor(temp) for temp in one_hots]
         y_one_hot = torch.cat(one_hots, dim=0)
         x_snail, y_one_hot = Variable(x_snail).cuda(), Variable(y_one_hot).cuda()
+
+        print("====================")
+        print(f"x_snail.size(): {x_snail.size()}")
+        print(f"y_one_hot.size(): {y_one_hot.size()}")
+        print(f"last_targets.size(): {last_targets.size()}")
+        print("====================")
 
         return x_snail, y_one_hot, last_targets

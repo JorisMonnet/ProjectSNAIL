@@ -13,7 +13,7 @@ class SnailModel(nn.Module):
         super(SnailModel, self).__init__()
 
         # TODO how to define num_channels ? output of FCNET
-        n_channels = features.final_feat_dim
+        n_channels = features.final_feat_dim + n_way
 
         self.features = features  
         num_filters = int(math.ceil(math.log(n_way * n_support + 1, 2)))
@@ -38,10 +38,30 @@ class SnailModel(nn.Module):
         batch_size = int(labels.size()[0] / (self.N * self.K + 1))
         last_idxs = [(i + 1) * (self.N * self.K + 1) - 1 for i in range(batch_size)]
 
+        print("====================")
+        print("SnailModel.forward")
+        print("x.size():", x.size())
+        print("labels.size():", labels.size())
+        print("batch_size:", batch_size)
+        print("last_idxs:", last_idxs)
+        print("====================")
+
         labels[last_idxs] = torch.Tensor(np.zeros((batch_size, labels.size()[1]))).cuda()
         x = torch.cat((x, labels), 1)
 
+        print("====================")
+        print("SnailModel.forward after cat")
+        print("x.size():", x.size())
+        print("====================")
+
         x = x.view((batch_size, self.N * self.K + 1, -1))
+
+        print("====================")
+        print("SnailModel.forward after view")
+        print("x.size():", x.size())
+        print("====================")
+
+        # TODO first attention layer doens't receive the expected size
         x = self.attention1(x)
         x = self.tc1(x)
         x = self.attention2(x)
