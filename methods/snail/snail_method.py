@@ -63,11 +63,18 @@ class SnailMethod(MetaTemplate):
                     y: (batch_size * seq_size, num_cls)
                     last_targets: (batch_size), the index of the label that we want to predict
         """
-        seq_size = self.num_cls * self.num_samples + 1
+        # seq_size = self.n_way * self.n_support + 1
+        seq_size = self.n_way * (self.n_support + self.n_query)
         one_hots = []
         last_targets = []
-        for i in range(self.batch_size):
-            one_hot, idxs = self.labels_to_one_hot(self, y[i * seq_size: (i + 1) * seq_size])
+        print(f"Batch size: {4}, seq_size: {seq_size}", flush=True)
+        print(f"Y shape: {y.shape}", flush=True)
+        print(f"Y content: {y}", flush=True)
+        for i in range(4-1): # TODO use batch_size
+            print(f"Batch size: {4}, i: {i}, slice: [{i * seq_size}:{(i + 1) * seq_size}]", flush=True)
+            one_hot, idxs = self.labels_to_one_hot(y[i * seq_size : (i + 1) * seq_size])
+            print(f"one_hot shape: {one_hot.shape}", flush=True)
+            print(f"idxs shape: {len(idxs)}, content: {idxs}", flush=True)
             one_hots.append(one_hot)
             last_targets.append(idxs[-1])
 
