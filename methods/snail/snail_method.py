@@ -25,59 +25,28 @@ class SnailMethod(MetaTemplate):
 
 
     def set_forward(self, x):
-        # TODO check that the labels are indeed correct
+        # TODO check that the labels are correct
         y = torch.from_numpy(np.repeat(range(self.n_way), self.n_support + self.n_query))
         y = Variable(y.cuda())
 
         # change x dimensions to be of shape (N*(K+Q), ...))
         x = x.reshape(-1, *x.size()[2:]) # TODO reshape vs view?
 
-        # print("====================")
-        # print("set_forward")
-        # print("x.size():", x.size())
-        # print("y.size():", y.size())
-        # print("====================")
-
         x, y, targets = self.batch_for_few_shot(x, y)
-
-        # print("====================")
-        # print("set_forward after batch_for_few_shot")
-        # print("x.size():", x.size())
-        # print("y.size():", y.size())
-        # print("targets.size():", targets.size())
-        # print("====================")
-
         model_output = self.snail_model(x, y)
-
-        # print("====================")
-        # print("set_forward after snail_model")
-        # print("model_output.size():", model_output.size())
-        # print("====================")
 
         # TODO: why 3 dimensions and not 2?
         return model_output[:, -1, :], targets
     
 
     def set_forward_loss(self, x):
-        # TODO it's strange that we don't use the n_support at some point
         # TODO: check if the labels are correct or if we need to
         # pass them as argument
-        # print("====================")
-        # print("set_forward_loss before call")
-        # print("x.size():", x.size())
-        # print("====================")
 
         model_preds, targets = self.set_forward(x)
 
-        # print("====================")
-        # print("set_forward_loss")
-        # print("model_preds:", model_preds, "size:", model_preds.size())
-        # print("targets:", targets, "size:", targets.size())
-        # print("====================")
-
         # get the last model
         targets = targets.view(-1)
-
 
         return self.criterion(model_preds, targets)
 
@@ -217,18 +186,6 @@ class SnailMethod(MetaTemplate):
         one_hots = []
         targets = []
 
-        # print("====================")
-        # print("batch_for_few_shot before concat")
-        # print("x.size():", x.size())
-        # print("y.size():", y.size())
-        # print(f"snail_seq_size: {snail_seq_size}")
-        # print(f"fsb_seq_size: {fsb_seq_size}")
-        # print(f"n_way: {self.n_way}")
-        # print(f"n_support: {self.n_support}")
-        # print(f"n_query: {self.n_query}")
-        # print(f"n_query_snail: {self.n_query_snail}")
-        # print("====================")
-
          # TODO use batch_size
 
         # initialize the new x, which will have the snail_seq_size as first dimension
@@ -264,12 +221,5 @@ class SnailMethod(MetaTemplate):
         one_hots = [torch.Tensor(temp) for temp in one_hots]
         y_one_hot = torch.cat(one_hots, dim=0)
         x_snail, y_one_hot = Variable(x_snail).cuda(), Variable(y_one_hot).cuda()
-
-        # print("====================")
-        # print("batch_for_few_shot after concat")
-        # print(f"x_snail.size(): {x_snail.size()}")
-        # print(f"y_one_hot.size(): {y_one_hot.size()}")
-        # print(f"targets.size(): {targets.size()}")
-        # print("====================")
 
         return x_snail, y_one_hot, targets
