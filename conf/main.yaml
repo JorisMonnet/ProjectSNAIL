@@ -33,3 +33,4 @@ wandb:
   mode: "online" # Can set to offline, disabled
 
 iter_num: 600
+# iter_num: 10000

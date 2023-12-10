@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
+import wandb
 
 from backbones.blocks import Linear_fw
 from methods.meta_template import MetaTemplate
@@ -24,26 +25,19 @@ class SnailMethod(MetaTemplate):
         return self.snail_model(x, y_query)
 
 
-    def set_forward(self, x):
-        # TODO check that the labels are correct
-        y = torch.from_numpy(np.repeat(range(self.n_way), self.n_support + self.n_query))
-        y = Variable(y.cuda())
-
-        # change x dimensions to be of shape (N*(K+Q), ...))
-        x = x.reshape(-1, *x.size()[2:]) # TODO reshape vs view?
-
+    def set_forward(self, x, y):
+        x = x.reshape(-1, *x.size()[2:])
+        
         x, y, targets = self.batch_for_few_shot(x, y)
+
         model_output = self.snail_model(x, y)
 
         # TODO: why 3 dimensions and not 2?
         return model_output[:, -1, :], targets
     
 
-    def set_forward_loss(self, x):
-        # TODO: check if the labels are correct or if we need to
-        # pass them as argument
-
-        model_preds, targets = self.set_forward(x)
+    def set_forward_loss(self, x, y):
+        model_preds, targets = self.set_forward(x, y)
 
         # get the last model
         targets = targets.view(-1)
@@ -60,11 +54,11 @@ class SnailMethod(MetaTemplate):
         return (pred_classes == targets).sum().item() / targets.size(0)
 
 
-    def test_loop(self, test_loader, record=None, return_std=False):
-        acc_all = []
+    def train_loop(self, epoch, train_loader, optimizer):
+        print_freq = 10
 
-        iter_num = len(test_loader)
-        for i, (x, _) in enumerate(test_loader):
+        avg_loss = 0
+        for i, (x, y) in enumerate(train_loader): # TODO change y by _ depending on the outcome
             if isinstance(x, list):
                 self.n_query = x[0].size(1) - self.n_support
                 if self.change_way:
@@ -73,7 +67,41 @@ class SnailMethod(MetaTemplate):
                 self.n_query = x.size(1) - self.n_support
                 if self.change_way:
                     self.n_way = x.size(0)
-            model_preds, targets = self.set_forward(x)
+            optimizer.zero_grad()     
+
+            # put x and y in cuda
+            x, y = x.cuda(), y.cuda()
+
+            loss = self.set_forward_loss(x, y)
+            loss.backward()
+            optimizer.step()
+            avg_loss = avg_loss + loss.item()
+
+            if i % print_freq == 0:
+                # print(optimizer.state_dict()['param_groups'][0]['lr'])
+                print('Epoch {:d} | Batch {:d}/{:d} | Loss {:f}'.format(epoch, i, len(train_loader),
+                                                                        avg_loss / float(i + 1)))
+                wandb.log({"loss": avg_loss / float(i + 1)})
+
+            print("Voluntary error")
+            # throw exception
+            raise ValueError("Voluntary error")
+
+
+    def test_loop(self, test_loader, record=None, return_std=False):
+        acc_all = []
+
+        iter_num = len(test_loader)
+        for i, (x, y) in enumerate(test_loader):
+            if isinstance(x, list):
+                self.n_query = x[0].size(1) - self.n_support
+                if self.change_way:
+                    self.n_way = x[0].size(0)
+            else: 
+                self.n_query = x.size(1) - self.n_support
+                if self.change_way:
+                    self.n_way = x.size(0)
+            model_preds, targets = self.set_forward(x, y)
             acc = self.compute_accuracy(model_preds, targets)
             acc_all.append(acc)
 
