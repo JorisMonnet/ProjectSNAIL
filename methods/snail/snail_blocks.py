@@ -61,7 +61,8 @@ class AttentionBlock(nn.Module):
         # input is dim (N, T, in_channels) where N is the batch_size, and T is
         # the sequence length
         mask = np.array([[1 if i>j else 0 for i in range(input.shape[1])] for j in range(input.shape[1])])
-        mask = torch.ByteTensor(mask).cuda()
+        mask = torch.ByteTensor(mask).cuda() # TODO remove it if the code works and there's no warning
+        # mask = torch.BoolTensor(mask).cuda()
 
         #import pdb; pdb.set_trace()
         keys = self.linear_keys(input) # shape: (N, T, key_size)

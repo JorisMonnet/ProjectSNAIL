@@ -38,34 +38,16 @@ class SnailModel(nn.Module):
         batch_size = int(labels.size()[0] / (self.N * self.K + 1))
         last_idxs = [(i + 1) * (self.N * self.K + 1) - 1 for i in range(batch_size)]
 
-        print("====================")
-        print("SnailModel.forward")
-        print("x.size():", x.size())
-        print("labels.size():", labels.size())
-        print("batch_size:", batch_size)
-        print("last_idxs:", last_idxs)
-        print("====================")
-
         labels[last_idxs] = torch.Tensor(np.zeros((batch_size, labels.size()[1]))).cuda()
-        x = torch.cat((x, labels), 1)
-
-        print("====================")
-        print("SnailModel.forward after cat")
-        print("x.size():", x.size())
-        print("====================")
+        x = torch.cat((x, labels), 1) # TODO why do we concat labels like that?
 
         x = x.view((batch_size, self.N * self.K + 1, -1))
 
-        print("====================")
-        print("SnailModel.forward after view")
-        print("x.size():", x.size())
-        print("====================")
-
-        # TODO first attention layer doens't receive the expected size
         x = self.attention1(x)
         x = self.tc1(x)
         x = self.attention2(x)
         x = self.tc2(x)
         x = self.attention3(x)
         x = self.fc(x)
-        return x # TODO
+
+        return x

@@ -13,7 +13,7 @@ class SnailMethod(MetaTemplate):
     def __init__(self, backbone, n_way, n_support):
         super(SnailMethod, self).__init__(backbone, n_way, n_support, change_way=False)
         self.snail_model = SnailModel(backbone, n_way, n_support)
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss() # softmax is applied in the loss
         self.n_query_snail = 1
 
 
@@ -46,7 +46,13 @@ class SnailMethod(MetaTemplate):
         print("y.size():", y.size())
         print("last_targets.size():", last_targets.size())
         print("====================")
+
         model_output = self.snail_model(x, y)
+
+        print("====================")
+        print("set_forward after snail_model")
+        print("model_output.size():", model_output.size())
+        print("====================")
 
         # TODO: why 3 dimensions and not 2?
         return model_output[:, -1, :], last_targets
@@ -56,7 +62,23 @@ class SnailMethod(MetaTemplate):
         # TODO it's strange that we don't use the n_support at some point
         # TODO: check if the labels are correct or if we need to
         # pass them as argument
+        print("====================")
+        print("set_forward_loss before call")
+        print("x.size():", x.size())
+        print("====================")
+
         last_model, last_targets = self.set_forward(x)
+
+        print("====================")
+        print("set_forward_loss")
+        print("last_model:", last_model, "size:", last_model.size())
+        print("last_targets:", last_targets, "size:", last_targets.size())
+        print("====================")
+
+        # get the last model
+        last_targets = last_targets.view(-1)
+
+
         return self.criterion(last_model, last_targets)
 
     # def test_loop(self, val_loader, return_std=None):
@@ -161,6 +183,7 @@ class SnailMethod(MetaTemplate):
         last_targets = []
 
         print("====================")
+        print("batch_for_few_shot before concat")
         print("x.size():", x.size())
         print("y.size():", y.size())
         print(f"snail_seq_size: {snail_seq_size}")
@@ -208,6 +231,7 @@ class SnailMethod(MetaTemplate):
         x_snail, y_one_hot = Variable(x_snail).cuda(), Variable(y_one_hot).cuda()
 
         print("====================")
+        print("batch_for_few_shot after concat")
         print(f"x_snail.size(): {x_snail.size()}")
         print(f"y_one_hot.size(): {y_one_hot.size()}")
         print(f"last_targets.size(): {last_targets.size()}")
