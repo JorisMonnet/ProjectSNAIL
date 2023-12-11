@@ -72,7 +72,7 @@ class SnailModel(nn.Module):
 
         x = x.view((batch_size, self.N * self.K + 1, -1))
 
-        for block in self.snail_blocks:
+        for block in self.snail_blocks.cuda():
             x = block(x)
 
         x = self.fc(x)
