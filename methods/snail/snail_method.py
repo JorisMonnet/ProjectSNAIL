@@ -72,11 +72,11 @@ class SnailMethod(MetaTemplate):
             # put x and y in cuda
             x, y = x.cuda(), y.cuda()
 
-            print("=============")
-            print(f"x shape: {x.shape}")
-            print(f"y shape: {y.shape}, y: {y}")
-            print(f"n_way: {self.n_way}, n_support: {self.n_support}, n_query: {self.n_query}")
-            print("=============")
+            # print("=============")
+            # print(f"x shape: {x.shape}")
+            # print(f"y shape: {y.shape}, y: {y}")
+            # print(f"n_way: {self.n_way}, n_support: {self.n_support}, n_query: {self.n_query}")
+            # print("=============")
 
             loss = self.set_forward_loss(x, y)
             loss.backward()
