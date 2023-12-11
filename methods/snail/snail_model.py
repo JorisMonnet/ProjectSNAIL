@@ -12,9 +12,6 @@ class SnailModel(nn.Module):
     def __init__(self, features, n_way, n_support, architecture=None):
         super(SnailModel, self).__init__()
 
-        print("SnailModel init")
-        print(f"Architecture: {architecture}")
-
         if architecture is None:
             architecture = [
                 {'module': 'attention', 'att_key_size': 64, 'att_value_size': 32},
@@ -29,6 +26,8 @@ class SnailModel(nn.Module):
 
         self.features = features  
         num_filters = int(math.ceil(math.log(n_way * n_support + 1, 2)))
+
+        self.snail_blocks = []
 
         def add_module(self, module, att_key_size=None, att_value_size=None, tc_filters=None, add_channels=None):
             # Usually, value size = 2 * key size and n_channels += value_size
@@ -55,6 +54,8 @@ class SnailModel(nn.Module):
                 add_module(self, module='attention', att_key_size=block['att_key_size'], att_value_size=block['att_value_size'])
             elif block['module'] == 'tc':
                 add_module(self, module='tc', tc_filters=block['tc_filters'])
+            else:
+                print(f"Unrecognized module: {block['module']}")
 
         self.fc = nn.Linear(self.n_channels, n_way)
         self.N = n_way
