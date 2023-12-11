@@ -13,7 +13,7 @@ class SnailMethod(MetaTemplate):
 
     def __init__(self, backbone, n_way, n_support, architecture):
         super(SnailMethod, self).__init__(backbone, n_way, n_support, change_way=False)
-        self.snail_model = (backbone, n_way, n_support, architecture)
+        self.snail_model = SnailModel(backbone, n_way, n_support, architecture)
         self.criterion = nn.CrossEntropyLoss() # softmax is applied in the loss
         self.n_query_snail = 1
 
