@@ -1,9 +1,23 @@
 defaults:
   - meta_base
 
+name: snail
+
 num_channels: ???
 
 cls:
   _target_: methods.snail.snail_method.SnailMethod
-
-name: snail
+  architecture: 
+    - module: attention
+      att_key_size: 64
+      att_value_size: 32
+    - module: tc
+      tc_filters: 128
+    - module: attention
+      att_key_size: 256
+      att_value_size: 128
+    - module: tc
+      tc_filters: 128
+    - module: attention
+      att_key_size: 512
+      att_value_size: 256
