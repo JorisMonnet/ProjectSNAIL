@@ -58,7 +58,7 @@ class SnailMethod(MetaTemplate):
         print_freq = 10
 
         avg_loss = 0
-        for i, (x, y) in enumerate(train_loader): # TODO change y by _ depending on the outcome
+        for i, (x, y) in enumerate(train_loader):
             if isinstance(x, list):
                 self.n_query = x[0].size(1) - self.n_support
                 if self.change_way:
@@ -215,24 +215,6 @@ class SnailMethod(MetaTemplate):
 
         one_hots = []
         targets = []
-
-         # TODO use batch_size
-
-        # initialize the new x, which will have the snail_seq_size as first dimension
-        # x_snail = torch.zeros((snail_seq_size, *x.size()[1:])).cuda()
-        
-        # for i in range(4): # TODO use batch_size. Seemds like we have
-        #     print("Done iter 1!")
-        #     # convert the sequence from fewshotbench format to snail format
-        #     x_fsb = x[i * fsb_seq_size : (i + 1) * fsb_seq_size]
-        #     x_snail[i * snail_seq_size : (i + 1) * snail_seq_size] = self.fsb_to_snail_seq_data(x_fsb)
-
-        #     y_fsb = y[i * fsb_seq_size : (i + 1) * fsb_seq_size]
-        #     y_snail = self.fsb_to_snail_seq_label(y_fsb)
-
-        #     one_hot, idxs = self.labels_to_one_hot(y_snail)
-        #     one_hots.append(one_hot)
-        #     targets.append(idxs[-self.n_query:])
 
         # TODO it seems like in our case, we only have one sequence per batch
         x_snail = self.fsb_to_snail_seq_data(x)
