@@ -79,7 +79,7 @@ class MetaTemplate(nn.Module):
         print_freq = 10
 
         avg_loss = 0
-        for i, (x, y) in enumerate(train_loader): # TODO change y by _ depending on the outcome
+        for i, (x, y) in enumerate(train_loader):
             if isinstance(x, list):
                 self.n_query = x[0].size(1) - self.n_support
                 if self.change_way:

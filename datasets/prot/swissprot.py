@@ -69,10 +69,14 @@ class SPSetDataset(SPDataset):
         min_samples = n_support + n_query
         self.encoder = encodings(self.data_dir)
 
-        samples_all= self.load_swissprot(mode = mode, min_samples = min_samples)
-
+        samples_all = self.load_swissprot(mode = mode, min_samples = min_samples)
 
         self.categories = get_ids(samples_all) # Unique annotations
+
+        # remove category with value 'GO:0042773'
+        if 'GO:0042773' in self.categories:
+            self.categories.remove('GO:0042773')
+
         self.x_dim = PROTDIM
 
         self.sub_dataloader = []
@@ -112,7 +116,6 @@ class SubDataset(Dataset):
     def __getitem__(self, i):
         sample = self.samples[i]
         return sample.input_seq, self.encoder[sample.annot]
-        
 
     def __len__(self):
         return len(self.samples)

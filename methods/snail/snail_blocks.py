@@ -18,7 +18,7 @@ class CasualConv1d(nn.Module):
         # Takes something of shape (N, in_channels, T),
         # returns (N, out_channels, T)
         out = self.conv1d(input)
-        return out[:, :, :-self.dilation] # TODO: make this correct for different strides/padding
+        return out[:, :, :-self.dilation]
     
 
 class DenseBlock(nn.Module):
