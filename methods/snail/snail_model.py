@@ -13,13 +13,7 @@ class SnailModel(nn.Module):
         super(SnailModel, self).__init__()
 
         if architecture is None:
-            architecture = [
-                {'module': 'attention', 'att_key_size': 64, 'att_value_size': 32},
-                {'module': 'tc', 'tc_filters': 128},
-                {'module': 'attention', 'att_key_size': 256, 'att_value_size': 128},
-                {'module': 'tc', 'tc_filters': 128},
-                {'module': 'attention', 'att_key_size': 512, 'att_value_size': 256}
-            ]
+            print("YOU FOOL YOU FORGOT TO SPECIFY THE ARCHITECTURE")
 
         # TODO how to define num_channels ? output of FCNET
         self.n_channels = features.final_feat_dim + n_way
@@ -32,6 +26,7 @@ class SnailModel(nn.Module):
         def add_module(self, module, att_key_size=None, att_value_size=None, tc_filters=None, add_channels=None):
             # Usually, value size = 2 * key size and n_channels += value_size
             if (module == 'attention'):
+                print("Adding Attention")
                 attention_block = AttentionBlock(self.n_channels,  att_key_size, att_value_size)
                 self.snail_blocks.append(attention_block)
                 if add_channels:
@@ -40,6 +35,7 @@ class SnailModel(nn.Module):
                     self.n_channels += att_value_size
             # Usually, num_filters = 128 and n_channels += num_filters * 128
             elif (module == 'tc'):
+                print("Adding TC")
                 tc_block = TCBlock(self.n_channels, n_way * n_support + 1, tc_filters)
                 self.snail_blocks.append(tc_block)
                 if add_channels:
