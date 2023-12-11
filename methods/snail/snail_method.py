@@ -72,6 +72,12 @@ class SnailMethod(MetaTemplate):
             # put x and y in cuda
             x, y = x.cuda(), y.cuda()
 
+            print("=============")
+            print(f"x shape: {x.shape}")
+            print(f"y shape: {y.shape}, y: {y}")
+            print(f"n_way: {self.n_way}, n_support: {self.n_support}, n_query: {self.n_query}")
+            print("=============")
+
             loss = self.set_forward_loss(x, y)
             loss.backward()
             optimizer.step()
@@ -82,10 +88,6 @@ class SnailMethod(MetaTemplate):
                 print('Epoch {:d} | Batch {:d}/{:d} | Loss {:f}'.format(epoch, i, len(train_loader),
                                                                         avg_loss / float(i + 1)))
                 wandb.log({"loss": avg_loss / float(i + 1)})
-
-            print("Voluntary error")
-            # throw exception
-            raise ValueError("Voluntary error")
 
 
     def test_loop(self, test_loader, record=None, return_std=False):
