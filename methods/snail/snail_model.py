@@ -27,7 +27,7 @@ class SnailModel(nn.Module):
         self.features = features  
         num_filters = int(math.ceil(math.log(n_way * n_support + 1, 2)))
 
-        self.snail_blocks = []
+        self.snail_blocks = nn.ModuleList()
 
         def add_module(self, module, att_key_size=None, att_value_size=None, tc_filters=None, add_channels=None):
             # Usually, value size = 2 * key size and n_channels += value_size
@@ -72,7 +72,7 @@ class SnailModel(nn.Module):
 
         x = x.view((batch_size, self.N * self.K + 1, -1))
 
-        for block in self.snail_blocks.cuda():
+        for block in self.snail_blocks:
             x = block(x)
 
         x = self.fc(x)
