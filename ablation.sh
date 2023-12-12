@@ -60,13 +60,13 @@ arch_tc="
         {
             module: tc,
             tc_filters: 128
-        },
+        }
     ]"
 
 echo "Running attention only architecture"
 arch_attention_flattened=$(flatten_json "$arch_attention")
-python run.py exp.name=snail_lr_tuning method=snail dataset=swissprot n_query=1 lr=0.0001 method.architecture=$arch_attention_flattened
+python run.py exp.name=snail_ablation_attention method=snail dataset=swissprot n_query=1 lr=0.0001 method.architecture=$arch_attention_flattened
 
 echo "Running tc only architecture"
 arch_tc_flattened=$(flatten_json "$arch_tc")
-python run.py exp.name=snail_lr_tuning method=snail dataset=swissprot n_query=1 lr=0.0001 method.architecture=$arch_tc_flattened
+python run.py exp.name=snail_ablation_tc method=snail dataset=swissprot n_query=1 lr=0.0001 method.architecture=$arch_tc_flattened

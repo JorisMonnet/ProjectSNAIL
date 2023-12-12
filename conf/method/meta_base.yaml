@@ -2,7 +2,7 @@ defaults:
   - method_base
 
 stop_epoch: 60
-# stop_epoch: 100
+
 type: meta
 
 cls:

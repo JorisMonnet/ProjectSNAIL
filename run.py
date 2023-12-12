@@ -57,9 +57,6 @@ def run(cfg):
 
     fix_seed(cfg.exp.seed)
 
-    print("cfg.architecture:", cfg.method.architecture)
-    print("cfg.architecture[0]:", cfg.method.architecture[0])
-
     train_loader, val_loader, model = initialize_dataset_model(cfg)
 
     if cfg.mode == "train":
