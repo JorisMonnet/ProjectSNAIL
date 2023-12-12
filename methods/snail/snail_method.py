@@ -51,7 +51,7 @@ class SnailMethod(MetaTemplate):
         # Get the predicted classes by finding the index of the maximum logit
         _, pred_classes = torch.max(model_preds, 1)
 
-        return (pred_classes == targets).sum().item() / targets.size(0)
+        return (pred_classes == targets).sum().item() / targets.size(0) * 100
 
 
     def train_loop(self, epoch, train_loader, optimizer):
@@ -72,15 +72,10 @@ class SnailMethod(MetaTemplate):
             # put x and y in cuda
             x, y = x.cuda(), y.cuda()
 
-            # print("=============")
-            # print(f"x shape: {x.shape}")
-            # print(f"y shape: {y.shape}, y: {y}")
-            # print(f"n_way: {self.n_way}, n_support: {self.n_support}, n_query: {self.n_query}")
-            # print("=============")
-
             loss = self.set_forward_loss(x, y)
             loss.backward()
             optimizer.step()
+
             avg_loss = avg_loss + loss.item()
 
             if i % print_freq == 0:
@@ -120,9 +115,11 @@ class SnailMethod(MetaTemplate):
 
     def labels_to_one_hot(self, labels):
         labels = labels.cpu().numpy()
-        unique = np.unique(labels)
-        map = {label:idx for idx, label in enumerate(unique)}
-        idxs = [map[labels[i]] for i in range(labels.size)]
+        unique, unique_idx = np.unique(labels, return_index=True)
+        unique = unique[np.argsort(unique_idx)]
+
+        label_mapper = {label:idx for idx, label in enumerate(unique)}
+        idxs = [label_mapper[labels[i]] for i in range(labels.size)]
         one_hot = np.zeros((labels.size, unique.size))
         one_hot[np.arange(labels.size), idxs] = 1
         return one_hot, idxs
@@ -147,7 +144,7 @@ class SnailMethod(MetaTemplate):
         return support_tensor, query_tensor
     
     
-    def fsb_to_snail_seq_label(self, y_fsb):
+    def fsb_to_snail_seq_label(self, y_fsb, target_query):
         """
             Convert a sequence in the fewshotbench format to the snail format
         """
@@ -155,8 +152,7 @@ class SnailMethod(MetaTemplate):
         y_support, y_query = self.split_support_query_labels(y_fsb)
 
         # sample n_query randomly from the query set and concatenate them to the support set
-        assert y_query.size()[0] == self.n_way * self.n_query
-        targets_labels = y_query[torch.randperm(y_query.size()[0])[:self.n_query_snail]]
+        targets_labels = y_query[target_query]
 
         # put the labels and the last targets together
         y_support = torch.cat((y_support, targets_labels), dim=0)
@@ -184,7 +180,7 @@ class SnailMethod(MetaTemplate):
         return support_tensor, query_tensor
     
 
-    def fsb_to_snail_seq_data(self, x_fsb):
+    def fsb_to_snail_seq_data(self, x_fsb, target_query):
         """
             Convert a sequence in the fewshotbench format to the snail format
         """
@@ -193,7 +189,7 @@ class SnailMethod(MetaTemplate):
 
         # sample n_query randomly from the query set and concatenate them to the support set
         assert x_query.size()[0] == self.n_way * self.n_query
-        targets_data = x_query[torch.randperm(x_query.size()[0])[:self.n_query_snail]]
+        targets_data = x_query[target_query]
 
         # put the labels and the last targets together
         x_support = torch.cat((x_support, targets_data), dim=0)
@@ -217,8 +213,9 @@ class SnailMethod(MetaTemplate):
         targets = []
 
         # TODO it seems like in our case, we only have one sequence per batch
-        x_snail = self.fsb_to_snail_seq_data(x)
-        y_snail = self.fsb_to_snail_seq_label(y)
+        target_query = torch.randperm(self.n_way)[:self.n_query_snail]
+        x_snail = self.fsb_to_snail_seq_data(x, target_query)
+        y_snail = self.fsb_to_snail_seq_label(y, target_query)
 
         one_hot, idxs = self.labels_to_one_hot(y_snail)
         one_hots.append(one_hot)
