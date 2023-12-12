@@ -57,6 +57,9 @@ def run(cfg):
 
     fix_seed(cfg.exp.seed)
 
+    print("cfg.architecture:", cfg.method.architecture)
+    print("cfg.architecture[0]:", cfg.method.architecture[0])
+
     train_loader, val_loader, model = initialize_dataset_model(cfg)
 
     if cfg.mode == "train":
@@ -112,6 +115,9 @@ def train(train_loader, val_loader, model, cfg):
     wandb.config.update({"optimizer_details": opt_to_dict(optimizer)})
 
     max_acc = -1
+
+    print("cfg stop epoch:", cfg.method.stop_epoch)
+    print("cfg learning rate:", cfg.optimizer_cls.lr)
 
     for epoch in range(cfg.method.start_epoch, cfg.method.stop_epoch):
         wandb.log({'epoch': epoch})

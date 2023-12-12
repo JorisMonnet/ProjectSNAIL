@@ -27,3 +27,5 @@ outputs/*
 wandb/*
 checkpoints/*
 swissprot.zip
+
+multirun/*

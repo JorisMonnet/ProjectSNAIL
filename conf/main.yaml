@@ -17,6 +17,7 @@ exp:
   val_freq: 1
 
 optimizer: Adam
+# lr: 0.0001
 lr: 0.001
 optimizer_cls:
   _target_: torch.optim.${optimizer}
@@ -33,4 +34,3 @@ wandb:
   mode: "online" # Can set to offline, disabled
 
 iter_num: 600
-# iter_num: 10000
