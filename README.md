@@ -1,3 +1,8 @@
+# CS-502 Project Option 2 - A Simple Neural Attentive Meta-Learner (SNAIL) - Team 7
+
+Colin Pelletier, Matthieu Burguburu, Joris Monnet
+
+
 # Few Shot Benchmark for Biomedical Datasets
 
 
