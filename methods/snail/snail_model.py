@@ -58,7 +58,6 @@ class SnailModel(nn.Module):
         self.fc = nn.Linear(self.n_channels, n_way)
         self.N = n_way
         self.K = n_support
-        
 
     def forward(self, x, labels):
         """
