@@ -24,7 +24,7 @@ class SnailMethod(MetaTemplate):
         """
             Forward pass of the model
             :param x: (batch_size, seq_size, num_channels, height, width)
-            :return: TODO
+            :return: model_output
         """
         y_query = torch.from_numpy(np.repeat(range(self.n_way), self.n_query))
         y_query = Variable(y_query.cuda())
@@ -258,7 +258,6 @@ class SnailMethod(MetaTemplate):
         one_hots = []
         targets = []
 
-        # TODO it seems like in our case, we only have one sequence per batch
         target_query = torch.randperm(self.n_way)[:self.n_query_snail]
         x_snail = self.fsb_to_snail_seq_data(x, target_query)
         y_snail = self.fsb_to_snail_seq_label(y, target_query)

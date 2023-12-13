@@ -102,8 +102,7 @@ class AttentionBlock(nn.Module):
         returns (N, T, in_channels + value_size)
         """
         mask = np.array([[1 if i > j else 0 for i in range(input.shape[1])] for j in range(input.shape[1])])
-        mask = torch.ByteTensor(mask).cuda()  # TODO remove it if the code works and there's no warning
-        # mask = torch.BoolTensor(mask).cuda()
+        mask = torch.ByteTensor(mask).cuda()
 
         # import pdb; pdb.set_trace()
         keys = self.linear_keys(input)  # shape: (N, T, key_size)

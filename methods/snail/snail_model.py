@@ -18,7 +18,6 @@ class SnailModel(nn.Module):
         if architecture is None:
             print("YOU FOOL YOU FORGOT TO SPECIFY THE ARCHITECTURE")
 
-        # TODO how to define num_channels ? output of FCNET
         self.n_channels = features.final_feat_dim + n_way
 
         self.features = features
@@ -70,7 +69,7 @@ class SnailModel(nn.Module):
         last_idxs = [(i + 1) * (self.N * self.K + 1) - 1 for i in range(batch_size)]
 
         labels[last_idxs] = torch.Tensor(np.zeros((batch_size, labels.size()[1]))).cuda()
-        x = torch.cat((x, labels), 1)  # TODO why do we concat labels like that?
+        x = torch.cat((x, labels), 1)
 
         x = x.view((batch_size, self.N * self.K + 1, -1))
 
