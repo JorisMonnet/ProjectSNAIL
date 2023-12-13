@@ -1,42 +1,55 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import wandb
+from torch.autograd import Variable
 
-from backbones.blocks import Linear_fw
 from methods.meta_template import MetaTemplate
 from methods.snail.snail_model import SnailModel
 
 
 class SnailMethod(MetaTemplate):
+    """
+        This class is a wrapper around the SnailModel class.
+        It implements the methods from MetaTemplate that are specific to the SNAIL method.
+    """
 
     def __init__(self, backbone, n_way, n_support, architecture):
         super(SnailMethod, self).__init__(backbone, n_way, n_support, change_way=False)
         self.snail_model = SnailModel(backbone, n_way, n_support, architecture)
-        self.criterion = nn.CrossEntropyLoss() # softmax is applied in the loss
+        self.criterion = nn.CrossEntropyLoss()  # softmax is applied in the loss
         self.n_query_snail = 1
 
-
     def forward(self, x):
+        """
+            Forward pass of the model
+            :param x: (batch_size, seq_size, num_channels, height, width)
+            :return: TODO
+        """
         y_query = torch.from_numpy(np.repeat(range(self.n_way), self.n_query))
         y_query = Variable(y_query.cuda())
 
         return self.snail_model(x, y_query)
 
-
     def set_forward(self, x, y):
+        """
+        TODO
+        """
         x = x.reshape(-1, *x.size()[2:])
-        
+
         x, y, targets = self.batch_for_few_shot(x, y)
 
         model_output = self.snail_model(x, y)
 
-        # TODO: why 3 dimensions and not 2?
         return model_output[:, -1, :], targets
-    
 
     def set_forward_loss(self, x, y):
+        """
+        Forward pass of the model and compute the loss
+        :param x: (batch_size, seq_size, num_channels, height, width)
+        :param y: (batch_size, seq_size, num_cls)
+        :return: loss
+        """
         model_preds, targets = self.set_forward(x, y)
 
         # get the last model
@@ -44,8 +57,13 @@ class SnailMethod(MetaTemplate):
 
         return self.criterion(model_preds, targets)
 
-
     def compute_accuracy(self, model_preds, targets):
+        """
+        Compute the accuracy of the model
+        :param model_preds: (batch_size, num_cls)
+        :param targets: (batch_size)
+        :return: accuracy
+        """
         targets = targets.view(-1)
 
         # Get the predicted classes by finding the index of the maximum logit
@@ -53,8 +71,14 @@ class SnailMethod(MetaTemplate):
 
         return (pred_classes == targets).sum().item() / targets.size(0) * 100
 
-
     def train_loop(self, epoch, train_loader, optimizer):
+        """
+        Train the model for one epoch
+        :param epoch: int
+        :param train_loader: loader
+        :param optimizer: optimizer
+        :return: None
+        """
         print_freq = 10
 
         avg_loss = 0
@@ -63,11 +87,11 @@ class SnailMethod(MetaTemplate):
                 self.n_query = x[0].size(1) - self.n_support
                 if self.change_way:
                     self.n_way = x[0].size(0)
-            else: 
+            else:
                 self.n_query = x.size(1) - self.n_support
                 if self.change_way:
                     self.n_way = x.size(0)
-            optimizer.zero_grad()     
+            optimizer.zero_grad()
 
             # put x and y in cuda
             x, y = x.cuda(), y.cuda()
@@ -84,8 +108,14 @@ class SnailMethod(MetaTemplate):
                                                                         avg_loss / float(i + 1)))
                 wandb.log({"loss": avg_loss / float(i + 1)})
 
-
     def test_loop(self, test_loader, record=None, return_std=False):
+        """
+        Test the model on the test set
+        :param test_loader: loader for the test set
+        :param record: not used
+        :param return_std: bool, whether to return the standard deviation of the accuracy
+        :return: test accuracy
+        """
         acc_all = []
 
         iter_num = len(test_loader)
@@ -94,7 +124,7 @@ class SnailMethod(MetaTemplate):
                 self.n_query = x[0].size(1) - self.n_support
                 if self.change_way:
                     self.n_way = x[0].size(0)
-            else: 
+            else:
                 self.n_query = x.size(1) - self.n_support
                 if self.change_way:
                     self.n_way = x.size(0)
@@ -112,20 +142,29 @@ class SnailMethod(MetaTemplate):
         else:
             return acc_mean
 
-
     def labels_to_one_hot(self, labels):
+        """
+            Convert a vector of labels to a matrix of one-hot vectors
+            :param labels: (batch_size)
+            :return: one_hot: (batch_size, num_cls)
+        """
         labels = labels.cpu().numpy()
         unique, unique_idx = np.unique(labels, return_index=True)
         unique = unique[np.argsort(unique_idx)]
 
-        label_mapper = {label:idx for idx, label in enumerate(unique)}
+        label_mapper = {label: idx for idx, label in enumerate(unique)}
         idxs = [label_mapper[labels[i]] for i in range(labels.size)]
         one_hot = np.zeros((labels.size, unique.size))
         one_hot[np.arange(labels.size), idxs] = 1
         return one_hot, idxs
-    
-    
+
     def split_support_query_labels(self, original_tensor):
+        """
+            Split the labels of a sequence in the fewshotbench format
+            :param original_tensor: (batch_size * seq_size)
+            :return: support_tensor: (batch_size * n_way * n_support)
+                     query_tensor: (batch_size * n_way * n_query)
+        """
         # Reshape the tensor to separate each 'way'
         reshaped_tensor = original_tensor.view(self.n_way, self.n_support + self.n_query)
 
@@ -142,11 +181,13 @@ class SnailMethod(MetaTemplate):
         assert query_tensor.size()[0] == self.n_way * self.n_query
 
         return support_tensor, query_tensor
-    
-    
+
     def fsb_to_snail_seq_label(self, y_fsb, target_query):
         """
             Convert a sequence in the fewshotbench format to the snail format
+            :param y_fsb: (batch_size * seq_size)
+            :param target_query: (batch_size)
+            :return: y_support: (batch_size * n_way * n_support + n_query_snail)
         """
         # split support and queries
         y_support, y_query = self.split_support_query_labels(y_fsb)
@@ -159,9 +200,13 @@ class SnailMethod(MetaTemplate):
         assert y_support.size()[0] == self.n_way * self.n_support + self.n_query_snail
 
         return y_support
-    
 
     def split_support_query_data(self, original_tensor):
+        """
+            Split the data of a sequence in the fewshotbench format
+            :param original_tensor: (batch_size * seq_size, num_channels, height, width)
+            :return: support_tensor: (batch_size * n_way * n_support, num_channels, height, width)
+        """
         # Reshape the tensor to separate each 'way'
         reshaped_tensor = original_tensor.view(self.n_way, self.n_support + self.n_query, *original_tensor.size()[1:])
 
@@ -178,11 +223,13 @@ class SnailMethod(MetaTemplate):
         assert query_tensor.size()[0] == self.n_way * self.n_query
 
         return support_tensor, query_tensor
-    
 
     def fsb_to_snail_seq_data(self, x_fsb, target_query):
         """
             Convert a sequence in the fewshotbench format to the snail format
+            :param x_fsb: (batch_size * seq_size, num_channels, height, width)
+            :param target_query: (batch_size)
+            :return: x_support: (batch_size * n_way * n_support + n_query_snail, num_channels, height, width)
         """
         # split support and queries
         x_support, x_query = self.split_support_query_data(x_fsb)
@@ -197,7 +244,6 @@ class SnailMethod(MetaTemplate):
 
         return x_support
 
-    
     def batch_for_few_shot(self, x, y):
         """
             Convert each labels in the batch to a one-hot vector
