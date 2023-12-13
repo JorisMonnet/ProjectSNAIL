@@ -78,6 +78,7 @@ learning, and meta-learning methods like Protoypical Networks (protonet), Matchi
 and Model-Agnostic Meta-Learning (MAML). To create a new method, subclass the `MetaTemplate` class and
 create a new method config file at `conf/method/{method_name}.yaml` with the pointer to the new class.
 Here, we added a new method called `Simple Neural Attentive Meta learner(SNAIL)` from [Mishra et al. (2017)](https://arxiv.org/pdf/1707.03141.pdf).
+The file added for this method are located in `methods/snail/` folder and we added a config file: `conf/method/snail.yaml`.
 
 The methods include:
 
