@@ -77,9 +77,9 @@ We provide a set of methods in `methods/`, including a baseline method that does
 learning, and meta-learning methods like Protoypical Networks (protonet), Matching Networks (matchingnet),
 and Model-Agnostic Meta-Learning (MAML). To create a new method, subclass the `MetaTemplate` class and
 create a new method config file at `conf/method/{method_name}.yaml` with the pointer to the new class.
+Here, we added a new method called `Simple Neural Attentive Meta learner(SNAIL)` from [Mishra et al. (2017)](https://arxiv.org/pdf/1707.03141.pdf).
 
-
-The provided methods include:
+The methods include:
 
 | Method      | Source                             | 
 |--------------|----------------------------------|
@@ -87,6 +87,7 @@ The provided methods include:
 | ProtoNet | [Snell et al. (2017)](https://proceedings.neurips.cc/paper_files/paper/2017/file/cb8da6767461f2812ae4290eac7cbc42-Paper.pdf) |
 | MatchingNet | [Vinyals et al. (2016)](https://proceedings.neurips.cc/paper/2016/file/90e1357833654983612fb05e3ec9148c-Paper.pdf) |
 | MAML | [Finn et al. (2017)](https://proceedings.mlr.press/v70/finn17a/finn17a.pdf) |
+| SNAIL | [Mishra et al. (2017)](https://arxiv.org/pdf/1707.03141.pdf) |
 
 
 ## Models
@@ -126,9 +127,4 @@ To log in to WandB, run `wandb login` and enter the API key provided on the webs
 ## References
 Algorithm implementations based on [COMET](https://github.com/snap-stanford/comet) and [CloserLookFewShot](https://github.com/wyharveychen/CloserLookFewShot). Dataset
 preprocessing code is modified from each respective dataset paper, where applicable.
-
-### Slides and Additional Documentation
-
-- [How to integrate a dataset into the benchmark ?](https://docs.google.com/document/d/11JNrneGe9Drb1tO3Sq0ZaIPBeANIzXUxJqm9Kq1oZYM/edit)
-- Slides (Available on Moodle)
 
