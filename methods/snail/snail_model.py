@@ -29,7 +29,7 @@ class SnailModel(nn.Module):
                 print("Adding Attention")
                 attention_block = AttentionBlock(self.n_channels,  att_key_size, att_value_size)
                 self.snail_blocks.append(attention_block)
-                if add_channels:
+                if add_channels is not None:
                     self.n_channels += add_channels
                 else:
                     self.n_channels += att_value_size
@@ -38,7 +38,7 @@ class SnailModel(nn.Module):
                 print("Adding TC")
                 tc_block = TCBlock(self.n_channels, n_way * n_support + 1, tc_filters)
                 self.snail_blocks.append(tc_block)
-                if add_channels:
+                if add_channels is not None:
                     self.n_channels += add_channels
                 else:
                     self.n_channels += num_filters * tc_filters
