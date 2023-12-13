@@ -3,7 +3,7 @@
 
 ## Installation
 
-You have been provided with a `fewshotbench.zip` file containing the code for this benchmark. The accompanying presentation will also help you get started.
+We used the provided `fewshotbench.zip` file containing the benchmark code.
 
 ### Conda
 
@@ -33,7 +33,7 @@ python -m pip install -r requirements.txt
 ### Training
 
 ```bash
-python run.py exp.name={exp_name} method=maml dataset=tabula_muris
+python run.py exp.name={exp_name} method=snail dataset=tabula_muris
 ```
 
 By default, method is set to MAML, and dataset is set to Tabula Muris.
@@ -45,13 +45,37 @@ The training process will automatically evaluate at the end. To only evaluate wi
 running training, use the following:
 
 ```bash
-python run.py exp.name={exp_name} method=maml dataset=tabula_muris mode=test
+python run.py exp.name={exp_name} method=snail dataset=tabula_muris mode=test
 ```
 
 Run `run.py` with the same parameters as the training run, with `mode=test` and it will automatically use the
 best checkpoint (as measured by val ACC) from the most recent training run with that combination of
 exp.name/method/dataset/model. To choose a run conducted at a different time (i.e. not the latest), pass in the timestamp
 in the form `checkpoint.time={yyyymmdd_hhmmss}.` To choose a model from a specific epoch, use `checkpoint.iter=40`. 
+
+## Usage for SNAIL
+
+### SNAIL Training
+To train SNAIL, add the `n_query=1` parameter the command:
+
+```bash
+python run.py exp.name=snail_{exp_name} method=snail dataset=tabula_muris n_query=1
+```
+
+### Hyperparameter Tuning
+Use the `./hyperparamters_optim.sh` bash script to run hyperparameter optimization. It contains multiple command lines which will run the training script. You can change the learning rate manually for each command line and remove/add more if necessary. To run the script, use:
+
+```bash
+./hyperparamters_optim.sh
+```
+
+### Ablation Study
+Use the `./ablation.sh` bash script to run an ablation study. In this file, you need to provide the architecture that you want to test in JSON format. To run the script, use:
+
+```bash
+./ablation.sh
+```
+
 
 ## Datasets
 
