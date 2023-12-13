@@ -19,21 +19,27 @@ class SnailMethod(MetaTemplate):
         self.snail_model = SnailModel(backbone, n_way, n_support, architecture)
         self.criterion = nn.CrossEntropyLoss()  # softmax is applied in the loss
         self.n_query_snail = 1
+        
 
     def forward(self, x):
         """
-            Forward pass of the model
-            :param x: (batch_size, seq_size, num_channels, height, width)
-            :return: model_output
+        Forward pass of the model
+        :param x: (batch_size, seq_size, num_channels, height, width)
+        :return: model_output
         """
         y_query = torch.from_numpy(np.repeat(range(self.n_way), self.n_query))
         y_query = Variable(y_query.cuda())
 
         return self.snail_model(x, y_query)
+    
 
     def set_forward(self, x, y):
         """
-        TODO
+            Run one episode of the SNAIL method and return the target output
+            :param x: (batch_size, seq_size, num_channels, height, width)
+            :param y: (batch_size, seq_size, num_cls)
+            :return: model_output: (batch_size, num_cls)
+                        targets: (batch_size)
         """
         x = x.reshape(-1, *x.size()[2:])
 
@@ -42,13 +48,14 @@ class SnailMethod(MetaTemplate):
         model_output = self.snail_model(x, y)
 
         return model_output[:, -1, :], targets
+    
 
     def set_forward_loss(self, x, y):
         """
-        Forward pass of the model and compute the loss
-        :param x: (batch_size, seq_size, num_channels, height, width)
-        :param y: (batch_size, seq_size, num_cls)
-        :return: loss
+            Compute the SNAIL method loss over one episode
+            :param x: (batch_size, seq_size, num_channels, height, width)
+            :param y: (batch_size, seq_size, num_cls)
+            :return: loss
         """
         model_preds, targets = self.set_forward(x, y)
 
@@ -56,13 +63,14 @@ class SnailMethod(MetaTemplate):
         targets = targets.view(-1)
 
         return self.criterion(model_preds, targets)
+    
 
     def compute_accuracy(self, model_preds, targets):
         """
-        Compute the accuracy of the model
-        :param model_preds: (batch_size, num_cls)
-        :param targets: (batch_size)
-        :return: accuracy
+            Compute the accuracy of the model
+            :param model_preds: (batch_size, num_cls)
+            :param targets: (batch_size)
+            :return: accuracy
         """
         targets = targets.view(-1)
 
@@ -70,14 +78,15 @@ class SnailMethod(MetaTemplate):
         _, pred_classes = torch.max(model_preds, 1)
 
         return (pred_classes == targets).sum().item() / targets.size(0) * 100
+    
 
     def train_loop(self, epoch, train_loader, optimizer):
         """
-        Train the model for one epoch
-        :param epoch: int
-        :param train_loader: loader
-        :param optimizer: optimizer
-        :return: None
+            Train the model for one epoch
+            :param epoch: int
+            :param train_loader: loader
+            :param optimizer: optimizer
+            :return: None
         """
         print_freq = 10
 
@@ -108,13 +117,14 @@ class SnailMethod(MetaTemplate):
                                                                         avg_loss / float(i + 1)))
                 wandb.log({"loss": avg_loss / float(i + 1)})
 
+
     def test_loop(self, test_loader, record=None, return_std=False):
         """
-        Test the model on the test set
-        :param test_loader: loader for the test set
-        :param record: not used
-        :param return_std: bool, whether to return the standard deviation of the accuracy
-        :return: test accuracy
+            Test the model on the test set
+            :param test_loader: loader for the test set
+            :param record: not used
+            :param return_std: bool, whether to return the standard deviation of the accuracy
+            :return: test accuracy
         """
         acc_all = []
 
@@ -141,6 +151,7 @@ class SnailMethod(MetaTemplate):
             return acc_mean, acc_std
         else:
             return acc_mean
+        
 
     def labels_to_one_hot(self, labels):
         """
@@ -157,6 +168,7 @@ class SnailMethod(MetaTemplate):
         one_hot = np.zeros((labels.size, unique.size))
         one_hot[np.arange(labels.size), idxs] = 1
         return one_hot, idxs
+    
 
     def split_support_query_labels(self, original_tensor):
         """
@@ -181,6 +193,7 @@ class SnailMethod(MetaTemplate):
         assert query_tensor.size()[0] == self.n_way * self.n_query
 
         return support_tensor, query_tensor
+    
 
     def fsb_to_snail_seq_label(self, y_fsb, target_query):
         """
@@ -200,6 +213,7 @@ class SnailMethod(MetaTemplate):
         assert y_support.size()[0] == self.n_way * self.n_support + self.n_query_snail
 
         return y_support
+    
 
     def split_support_query_data(self, original_tensor):
         """
@@ -223,6 +237,7 @@ class SnailMethod(MetaTemplate):
         assert query_tensor.size()[0] == self.n_way * self.n_query
 
         return support_tensor, query_tensor
+    
 
     def fsb_to_snail_seq_data(self, x_fsb, target_query):
         """
@@ -252,9 +267,6 @@ class SnailMethod(MetaTemplate):
                     y: (batch_size * seq_size, num_cls)
                     targets: (batch_size), the index of the label that we want to predict
         """
-        snail_seq_size = self.n_way * self.n_support + self.n_query_snail
-        fsb_seq_size = self.n_way * (self.n_support + self.n_query)
-
         one_hots = []
         targets = []
 

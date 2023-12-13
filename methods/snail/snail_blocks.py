@@ -27,6 +27,7 @@ class CasualConv1d(nn.Module):
         padding = dilation * (kernel_size - 1)
         self.conv1d = nn.Conv1d(in_channels, out_channels, kernel_size, stride,
                                 padding, dilation, groups, bias)
+        
 
     def forward(self, input):
         """
@@ -43,6 +44,7 @@ class DenseBlock(nn.Module):
         self.casual_conv1 = CasualConv1d(in_channels, filters, kernel_size, dilation=dilation)
         self.casual_conv2 = CasualConv1d(in_channels, filters, kernel_size, dilation=dilation)
 
+        
     def forward(self, input):
         """
         Takes input of shape (N, in_channels, T),
@@ -67,6 +69,7 @@ class TCBlock(nn.Module):
         super(TCBlock, self).__init__()
         self.dense_blocks = nn.ModuleList([DenseBlock(in_channels + i * filters, 2 ** (i + 1), filters)
                                            for i in range(int(math.ceil(math.log(seq_length, 2))))])
+        
 
     def forward(self, input):
         """
@@ -94,6 +97,7 @@ class AttentionBlock(nn.Module):
         self.linear_keys = nn.Linear(in_channels, key_size)
         self.linear_values = nn.Linear(in_channels, value_size)
         self.sqrt_key_size = math.sqrt(key_size)
+        
 
     def forward(self, input):
         """
